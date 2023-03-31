@@ -1,5 +1,4 @@
 import React from "react";
-import axios from "axios";
 import {
   Table,
   Thead,
@@ -11,25 +10,28 @@ import {
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setKaryawan } from "redux/karyawanSlice";
+import { setKaryawan, setForm, getDatakaryawan } from "redux/karyawanSlice";
+import axios from "axios";
 
 function TableKaryawan() {
   const dispatch = useDispatch();
   const karyawan = useSelector((state) => state.karyawan.karyawan);
 
-  const getDatakaryawan = async () => {
-    try {
-      let response = await axios.get("http://localhost:4000/karyawan");
-      // console.log(response.data);
-      dispatch(setKaryawan(response.data));
-    } catch (error) {
-      console.log(error);
-    }
+  useEffect(() => {
+    dispatch(getDatakaryawan());
+  }, []);
+
+  const onEdit = (data) => {
+    console.log(data);
+    dispatch(setForm({ ...data, isEditing: true }));
   };
 
-  useEffect(() => {
-    getDatakaryawan();
-  }, []);
+  const onDelete = async (id) => {
+    try {
+      let response = await axios.delete(`http://localhost:4000/karyawan/${id}`);
+      dispatch(getDatakaryawan());
+    } catch (error) {}
+  };
 
   return (
     <div>
@@ -45,6 +47,7 @@ function TableKaryawan() {
               <Th>Kota</Th>
               <Th>Tahun</Th>
               <Th>Posisi</Th>
+              <Th>Action</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -57,7 +60,21 @@ function TableKaryawan() {
                 <Td>{data.berat}</Td>
                 <Td>{data.kota}</Td>
                 <Td>{data.tahun}</Td>
-                <Td>{data.idposisi}</Td>
+                <Td>{data.posisi}</Td>
+                <Td>
+                  <button
+                    onClick={() => onEdit(data)}
+                    className="text-white py-2 px-2 font-bold text-sm rounded-md bg-blue-600 mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-white py-2 px-2 font-bold text-sm rounded-md bg-red-600"
+                    onClick={() => onDelete(data.idkaryawan)}
+                  >
+                    Delete
+                  </button>
+                </Td>
               </Tr>
             ))}
           </Tbody>

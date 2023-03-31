@@ -2,11 +2,12 @@ const { db } = require("../database");
 
 module.exports = {
   getData: (req, res) => {
-    let scriptQuery = `SELECT * FROM karyawan;`;
+    let scriptQuery = `SELECT * FROM karyawan k
+    LEFT JOIN posisi p ON k.idposisi = p.idposisi;`;
     if (req.query.idkaryawan) {
-      scriptQuery = `SELECT * FROM karyawan WHERE idkaryawan=${db.escape(
+      scriptQuery = `SELECT * FROM karyawan k WHERE idkaryawan=${db.escape(
         req.query.idkaryawan
-      )};`;
+      )} JOIN posisi p ON k.idposisi = p.idposisi;`;
     }
     db.query(scriptQuery, (err, results) => {
       if (err) return res.status(500).send(err);

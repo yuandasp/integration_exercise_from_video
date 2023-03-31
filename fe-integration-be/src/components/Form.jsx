@@ -1,58 +1,57 @@
 import React from "react";
-import { useState } from "react";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
-import { setKaryawan } from "redux/karyawanSlice";
+import {
+  setKaryawan,
+  setForm,
+  resetForm,
+  getDatakaryawan,
+} from "redux/karyawanSlice";
 
 function Form() {
   const dispatch = useDispatch();
   const karyawan = useSelector((state) => state.karyawan.karyawan);
-
-  const [form, setForm] = useState({
-    nama: "",
-    usia: 0,
-    email: "",
-    berat: 0,
-    kota: "",
-    tahun: 0,
-    idposisi: 0,
-  });
+  const form = useSelector((state) => state.karyawan.form);
 
   const inputHandler = (event) => {
-    console.log(event.target.name);
-    console.log(event.target.value);
-    setForm({ ...form, [event.target.name]: event.target.value });
-  };
-
-  const resetForm = () => {
-    setForm({
-      nama: "",
-      usia: 0,
-      email: "",
-      berat: 0,
-      kota: "",
-      tahun: 0,
-      idposisi: 0,
-    });
+    // console.log(event.target.name);
+    // console.log(event.target.value);
+    dispatch(setForm({ ...form, [event.target.name]: event.target.value }));
   };
 
   const submitButton = async () => {
     try {
-      let response = await axios.post(
-        "http://localhost:4000/karyawan/add-data",
-        { ...form }
-      );
-      setForm({
-        nama: response.data.nama,
-        usia: response.data.usia,
-        email: response.data.email,
-        berat: response.data.berat,
-        kota: response.data.kota,
-        tahun: response.data.tahun,
-        idposisi: response.data.idposisi,
-      });
-      resetForm();
-      dispatch(setKaryawan(response.data));
+      if (form.isEditing === false) {
+        let response = await axios.post(
+          "http://localhost:4000/karyawan/add-data",
+          {
+            nama: form.nama,
+            usia: parseInt(form.usia),
+            email: form.email,
+            berat: parseFloat(form.berat),
+            kota: form.kota,
+            tahun: parseInt(form.tahun),
+            idposisi: parseInt(form.idposisi),
+          }
+        );
+        // console.log(response.data);
+        dispatch(resetForm());
+        dispatch(setKaryawan(response.data));
+      } else if (form.isEditing === true) {
+        let response = await axios.patch(
+          `http://localhost:4000/karyawan/edit-karyawan/${form.idkaryawan}`,
+          {
+            nama: form.nama,
+            usia: parseInt(form.usia),
+            email: form.email,
+            berat: parseFloat(form.berat),
+            kota: form.kota,
+            tahun: parseInt(form.tahun),
+            idposisi: parseInt(form.idposisi),
+          }
+        );
+        dispatch(getDatakaryawan());
+      }
     } catch (error) {
       console.log(error);
     }
@@ -134,7 +133,7 @@ function Form() {
           id="idposisi"
           className="w-3/5 border-black-100 border-2 py-1 px-2 rounded-md mt-2 mb-4"
           onChange={inputHandler}
-          // value={form.idposisi}
+          value={form.idposisi}
         >
           <option value="">--Please choose an option--</option>
           <option value={1}>CEO</option>
